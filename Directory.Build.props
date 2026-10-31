@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <!-- Single source of truth for the plugin version: build.yaml. Overridable: dotnet build -p:Version=1.0.0.0 -->
+    <BuildYamlText>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)build.yaml'))</BuildYamlText>
+    <Version Condition="'$(Version)' == ''">$([System.Text.RegularExpressions.Regex]::Match('$(BuildYamlText)', 'version: &quot;([0-9.]+)&quot;').Groups[1].Value)</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
+    <!-- Must match the version of the Jellyfin server. Overridable: dotnet build -p:JellyfinVersion=12.2.0 -->
+    <JellyfinVersion Condition="'$(JellyfinVersion)' == ''">12.2.0</JellyfinVersion>
+  </PropertyGroup>
+</Project>

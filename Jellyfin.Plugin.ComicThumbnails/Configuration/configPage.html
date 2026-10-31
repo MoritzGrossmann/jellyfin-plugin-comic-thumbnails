@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Comic Thumbnails</title>
+</head>
+<body>
+    <div id="ComicThumbnailsConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="ComicThumbnailsConfigForm">
+                    <div class="sectionTitleContainer flex align-items-center">
+                        <h2 class="sectionTitle">Comic Thumbnails</h2>
+                    </div>
+                    <p>Shows page thumbnails on the detail page of comics (.cbz, .cbr, .cb7, .cbt), below the people. Clicking a thumbnail opens the reader at that page.</p>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="InjectClientScript" type="checkbox" is="emby-checkbox" />
+                            <span>Add the thumbnail section to the web client</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">The plugin adds its script to the web client's index.html while it is served; no files are changed. Turn this off if you load the script yourself (see README). Reload the browser after changing it.</div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="StartCollapsed" type="checkbox" is="emby-checkbox" />
+                            <span>Start collapsed</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">The section is shown collapsed until you click its title.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="PageSize">Thumbnails per page</label>
+                        <input id="PageSize" type="number" is="emby-input" min="6" max="200" step="1" />
+                        <div class="fieldDescription">Only this many thumbnails are loaded at once; use the arrows to page through large comics. 6 to 200.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="ThumbnailWidth">Thumbnail width (pixels)</label>
+                        <input id="ThumbnailWidth" type="number" is="emby-input" min="80" max="800" step="10" />
+                        <div class="fieldDescription">80 to 800. Changing it creates new thumbnails; the old ones stay in the cache until you clear it.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="ThumbnailQuality">Thumbnail quality</label>
+                        <input id="ThumbnailQuality" type="number" is="emby-input" min="1" max="100" step="1" />
+                        <div class="fieldDescription">Encoder quality from 1 to 100.</div>
+                    </div>
+
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="verticalSection" style="margin-top: 2em;">
+                    <h3 class="sectionTitle">Cache</h3>
+                    <p>Thumbnails are stored in Jellyfin's cache folder under <code>comic-thumbnails</code> and created again when needed.</p>
+                    <button is="emby-button" type="button" id="ClearCache" class="raised block emby-button">
+                        <span>Clear thumbnail cache</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var ComicThumbnailsConfig = {
+                pluginUniqueId: '8d5e547a-736f-4544-b9f7-615fb5b453da'
+            };
+
+            function comicThumbnailsClamp(value, min, max, fallback) {
+                var number = parseInt(value, 10);
+                if (isNaN(number)) {
+                    return fallback;
+                }
+                return Math.min(max, Math.max(min, number));
+            }
+
+            document.querySelector('#ComicThumbnailsConfigPage')
+                .addEventListener('pageshow', function () {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(ComicThumbnailsConfig.pluginUniqueId).then(function (config) {
+                        document.querySelector('#InjectClientScript').checked = config.InjectClientScript;
+                        document.querySelector('#StartCollapsed').checked = config.StartCollapsed;
+                        document.querySelector('#PageSize').value = config.PageSize;
+                        document.querySelector('#ThumbnailWidth').value = config.ThumbnailWidth;
+                        document.querySelector('#ThumbnailQuality').value = config.ThumbnailQuality;
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+            document.querySelector('#ComicThumbnailsConfigForm')
+                .addEventListener('submit', function (e) {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(ComicThumbnailsConfig.pluginUniqueId).then(function (config) {
+                        config.InjectClientScript = document.querySelector('#InjectClientScript').checked;
+                        config.StartCollapsed = document.querySelector('#StartCollapsed').checked;
+                        config.PageSize = comicThumbnailsClamp(document.querySelector('#PageSize').value, 6, 200, 24);
+                        config.ThumbnailWidth = comicThumbnailsClamp(document.querySelector('#ThumbnailWidth').value, 80, 800, 240);
+                        config.ThumbnailQuality = comicThumbnailsClamp(document.querySelector('#ThumbnailQuality').value, 1, 100, 80);
+                        ApiClient.updatePluginConfiguration(ComicThumbnailsConfig.pluginUniqueId, config).then(function (result) {
+                            Dashboard.processPluginConfigurationUpdateResult(result);
+                        });
+                    });
+
+                    e.preventDefault();
+                    return false;
+                });
+
+            document.querySelector('#ClearCache')
+                .addEventListener('click', function () {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.ajax({ type: 'DELETE', url: ApiClient.getUrl('ComicThumbnails/Cache') }).then(function () {
+                        Dashboard.hideLoadingMsg();
+                        Dashboard.alert('Thumbnail cache cleared.');
+                    }, function () {
+                        Dashboard.hideLoadingMsg();
+                        Dashboard.alert('Could not clear the thumbnail cache.');
+                    });
+                });
+        </script>
+    </div>
+</body>
+</html>
