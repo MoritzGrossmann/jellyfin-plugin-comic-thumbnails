@@ -96,9 +96,69 @@
 
     /* ---------- Opening the reader ---------- */
 
-    // The web client follows "Play" commands the server sends to its own session, and passes
-    // StartPositionTicks to the comic reader. That is the only public way to start the reader at a page.
+    // The web client follows "Play" commands from the server and passes StartPositionTicks to the
+    // comic reader. That is the only way to start the reader at a page without access to its modules.
     function openAtPage(itemId, index) {
+        var ticks = index * TICKS_PER_PAGE;
+        if (playLocally(itemId, ticks)) {
+            return Promise.resolve();
+        }
+        return playThroughServer(itemId, ticks);
+    }
+
+    // Hands the "Play" message straight to the web client's own handlers, as if it had arrived over
+    // the WebSocket. This needs no server round trip and works in apps that wrap the web client
+    // (e.g. Jellyfin for Android), where the server may send the command to the app's native
+    // connection instead of the web view.
+    function playLocally(itemId, ticks) {
+        var client = api();
+        var message = {
+            MessageType: 'Play',
+            Data: { PlayCommand: 'PlayNow', ItemIds: [itemId], StartPositionTicks: ticks, StartIndex: 0 }
+        };
+        var handlers = null;
+        var legacy = null;
+        try {
+            // Current web client: WebSocket messages go through the SDK's WebSocketService.
+            var socket = client && client._sdk && client._sdk.webSocket;
+            handlers = socket && socket.subscriptions && typeof socket.subscriptions.get === 'function'
+                ? socket.subscriptions.get('Play')
+                : null;
+            // Older web clients: jellyfin-apiclient triggers a "message" event on the ApiClient.
+            legacy = client && client._callbacks && client._callbacks.message;
+        } catch (err) {
+            console.warn('[ComicThumbnails] Web client internals not found', err);
+        }
+
+        if (handlers && handlers.length) {
+            deliver(handlers, function (handler) {
+                handler(message);
+            });
+            return true;
+        }
+        if (legacy && legacy.length) {
+            deliver(legacy, function (handler) {
+                handler.call(client, { type: 'message' }, message);
+            });
+            return true;
+        }
+        return false;
+    }
+
+    // Once a handler has the message, the reader is on its way: never fall back to the server
+    // as well, or it would open twice.
+    function deliver(handlers, call) {
+        handlers.slice(0).forEach(function (handler) {
+            try {
+                call(handler);
+            } catch (err) {
+                console.error('[ComicThumbnails]', err);
+            }
+        });
+    }
+
+    // Fallback: ask the server to send the "Play" command to this client's session.
+    function playThroughServer(itemId, ticks) {
         var client = api();
         var deviceId = client.deviceId();
         var userId = client.getCurrentUserId();
@@ -112,7 +172,7 @@
                     throw new Error('No session for this device');
                 }
                 var query = 'playCommand=PlayNow&itemIds=' + encodeURIComponent(itemId)
-                    + '&startPositionTicks=' + (index * TICKS_PER_PAGE);
+                    + '&startPositionTicks=' + ticks;
                 return request('Sessions/' + own.Id + '/Playing?' + query, { method: 'POST' });
             })
             .catch(function (err) {

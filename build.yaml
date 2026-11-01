@@ -1,7 +1,7 @@
 ---
 name: "Comic Thumbnails"
 guid: "8d5e547a-736f-4544-b9f7-615fb5b453da"
-version: "1.0.0.0"
+version: "1.0.1.0"
 targetAbi: "12.2.0.0"
 framework: "net10.0"
 overview: "Page thumbnails on the comic detail page, click one to open the reader at that page"
@@ -15,4 +15,4 @@ artifacts:
 - "Jellyfin.Plugin.ComicThumbnails.dll"
 - "SharpCompress.dll"
 changelog: >
-  First version.
+  Fix: clicking a thumbnail now opens the reader at that page in the Android app too. The page is opened directly in the web client instead of through the server.

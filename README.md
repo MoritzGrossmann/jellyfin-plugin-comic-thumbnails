@@ -78,7 +78,9 @@ Clients that do not use the web client (e.g. native TV apps) do not show the sec
 
 ### Jumping to a page
 
-Jellyfin's comic reader (part of jellyfin-web) takes its start page from `startPositionTicks / 10000`. The script asks the server to send a *PlayNow* command with `StartPositionTicks = page × 10000` to the browser's own session (`POST /Sessions/{id}/Playing`). The web client starts the reader with that position, exactly as when you resume reading.
+Jellyfin's comic reader (part of jellyfin-web) takes its start page from `startPositionTicks / 10000`. The web client opens the reader when it receives a *Play* command, the same message the server sends when another device remote-controls it. The script hands a *PlayNow* command with `StartPositionTicks = page × 10000` directly to the web client's own handler for that message. No request goes to the server, so this also works in the Android app, where the server may deliver such commands to the app's native connection instead of the web view.
+
+If the web client's internals are not found (for example after a larger web client update), the script falls back to asking the server to send the command to its own session (`POST /Sessions/{id}/Playing`).
 
 ### Page order
 
