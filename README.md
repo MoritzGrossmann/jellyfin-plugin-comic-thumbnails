@@ -4,6 +4,8 @@
 
 Adds a **Pages** section to the detail page of every comic in Jellyfin, right below the people (*Cast & Crew*). It shows a thumbnail of each page of the comic. Click a thumbnail and Jellyfin's comic reader opens at exactly that page.
 
+![The Pages section on a comic's detail page, below the people](images/screenshot-1.png)
+
 - **Paged loading:** only one page of thumbnails (24 by default) is requested at a time. Use the arrows below the grid to page through large comics. Within a page, images load lazily as they scroll into view, at most four at a time.
 - **Server-side cache:** thumbnails are resized once with Jellyfin's own image encoder (WebP, or JPEG as a fallback) and stored in Jellyfin's cache folder. When the comic file changes, its thumbnails are recreated.
 - **Reading progress:** the pager starts on the page you last read, and that thumbnail is highlighted.
