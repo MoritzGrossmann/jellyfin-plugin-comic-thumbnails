@@ -152,6 +152,10 @@ To publish a release:
 
 The workflow fails early if the tag does not match `build.yaml` or if the revision does not fit the channel (stable must end in `.0`, pre-releases must not). When you raise `JellyfinVersion` for a new server version, update `targetAbi` in `build.yaml`, `JELLYFIN_VERSION` in `scripts/package.sh`, `build.sh`, `build.ps1` and `.github/workflows/build.yaml` as well.
 
+## Contributing
+
+Bug reports and pull requests are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md). Please also read the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Limitations
 
 - Only the web client (and apps that embed it) shows the section.
