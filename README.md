@@ -2,6 +2,11 @@
 
 ![Comic Thumbnails](images/comic-thumbnails.png)
 
+[![License](https://img.shields.io/github/license/MoritzGrossmann/jellyfin-plugin-comic-thumbnails?label=license&color=00a4dc)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/MoritzGrossmann/jellyfin-plugin-comic-thumbnails?label=release&color=9b59b6)](https://github.com/MoritzGrossmann/jellyfin-plugin-comic-thumbnails/releases/latest)
+[![Jellyfin](https://img.shields.io/badge/Jellyfin-12.x-9b59b6?logo=jellyfin&logoColor=00a4dc)](https://jellyfin.org)
+[![Downloads](https://img.shields.io/github/downloads/MoritzGrossmann/jellyfin-plugin-comic-thumbnails/total?label=downloads&color=9b59b6)](https://github.com/MoritzGrossmann/jellyfin-plugin-comic-thumbnails/releases)
+
 Adds a **Pages** section to the detail page of every comic in Jellyfin, right below the people (*Cast & Crew*). It shows a thumbnail of each page of the comic. Click a thumbnail and Jellyfin's comic reader opens at exactly that page.
 
 ![The Pages section on a comic's detail page, below the people](images/screenshot-1.png)
